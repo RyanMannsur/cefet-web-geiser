@@ -1,0 +1,28 @@
+{
+  "name": "cefet-web-geiser",
+  "version": "1.0.0",
+  "description": "Um mostruário de algumas pessoas que ficam fritando seus PCs. Há uma página que mostra essas pessoas e outra com detalhes sobre o que elas andam fazendo com seus computadores.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RyanMannsur/cefet-web-geiser.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/RyanMannsur/cefet-web-geiser/issues"
+  },
+  "homepage": "https://github.com/RyanMannsur/cefet-web-geiser#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "hbs": "^4.2.1"
+  }
+}

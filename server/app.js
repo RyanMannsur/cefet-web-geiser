@@ -1,43 +1,61 @@
-// importação de dependência(s)
-
-
-// variáveis globais deste módulo
+const express = require('express')
+const fs = require('fs')
+const app = express()
 const PORT = 3000
 const db = {}
 
+db.jogadores = JSON.parse(fs.readFileSync('server/data/jogadores.json', 'utf-8'))
+db.jogosPorJogador = JSON.parse(fs.readFileSync('server/data/jogosPorJogador.json', 'utf-8'))
 
-// carregar "banco de dados" (data/jogadores.json e data/jogosPorJogador.json)
-// você pode colocar o conteúdo dos arquivos json no objeto "db" logo abaixo
-// dica: 1-4 linhas de código (você deve usar o módulo de filesystem (fs))
+app.set('view engine', 'hbs')
+app.set('views', 'server/views')
 
+app.get('/', (req, res) => {
+  res.render('index', { players: db.jogadores.players })
+})
 
+app.get('/jogador/:numero_identificador/', (req, res) => {
+  const steamid = req.params.numero_identificador
+  
+  const player = db.jogadores.players.find(p => p.steamid === steamid)
+  if (!player) {
+    return res.status(404).send('Jogador não encontrado')
+  }
 
+  const playerGames = db.jogosPorJogador[steamid]
+  if (!playerGames) {
+    return res.status(404).send('Dados de jogos não encontrados')
+  }
 
-// configurar qual templating engine usar. Sugestão: hbs (handlebars)
-//app.set('view engine', '???qual-templating-engine???');
-//app.set('views', '???caminho-ate-pasta???');
-// dica: 2 linhas
+  const games = playerGames.games || []
+  const notPlayedCount = games.filter(g => g.playtime_forever === 0).length
+  
+  const favoriteGame = games.reduce((max, game) => 
+    game.playtime_forever > (max.playtime_forever || 0) ? game : max, {})
 
+  const topFiveGames = [...games]
+    .sort((a, b) => b.playtime_forever - a.playtime_forever)
+    .slice(0, 5)
+    .map(g => ({
+      ...g,
+      playtimeFormatted: (g.playtime_forever / 60).toFixed(0) + 'h'
+    }))
+  
+  if (favoriteGame.appid) {
+    favoriteGame.playtimeFormatted = (favoriteGame.playtime_forever / 60).toFixed(0) + 'h'
+  }
+  
+  res.render('jogador', {
+    player,
+    gameCount: playerGames.game_count,
+    notPlayedCount,
+    favoriteGame,
+    topFiveGames
+  })
+})
 
-// EXERCÍCIO 2
-// definir rota para página inicial --> renderizar a view index, usando os
-// dados do banco de dados "data/jogadores.json" com a lista de jogadores
-// dica: o handler desta função é bem simples - basta passar para o template
-//       os dados do arquivo data/jogadores.json (~3 linhas)
+app.use(express.static('client'))
 
-
-
-// EXERCÍCIO 3
-// definir rota para página de detalhes de um jogador --> renderizar a view
-// jogador, usando os dados do banco de dados "data/jogadores.json" e
-// "data/jogosPorJogador.json", assim como alguns campos calculados
-// dica: o handler desta função pode chegar a ter ~15 linhas de código
-
-
-// EXERCÍCIO 1
-// configurar para servir os arquivos estáticos da pasta "client"
-// dica: 1 linha de código
-
-
-// abrir servidor na porta 3000 (constante PORT)
-// dica: 1-3 linhas de código
+app.listen(PORT, () => {
+  console.log(`Servidor rodando em http://localhost:${PORT}`)
+})
